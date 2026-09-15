@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinFlow — Premium Finance Dashboard</title>
+  <meta name="description" content="Track your finances with FinFlow — a premium, interactive finance dashboard with real-time insights, transaction management, and role-based access." />
+  
+  <!-- FinFlow Logo Favicon -->
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ─── TOAST CONTAINER ─────────────────────────────────── -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ─── MOBILE OVERLAY ──────────────────────────────────── -->
+<div id="overlay-bg" class="overlay-bg"></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!--  APP LAYOUT                                           -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="app-layout">
+
+  <!-- ─── SIDEBAR ──────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 100 100" style="border-radius: 8px; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4);">
+          <defs>
+            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2a0d45" />
+              <stop offset="100%" stop-color="#0b0318" />
+            </linearGradient>
+            <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#7c3aed" />
+              <stop offset="50%" stop-color="#c084fc" />
+              <stop offset="100%" stop-color="#ffffff" />
+            </linearGradient>
+          </defs>
+          <rect width="100" height="100" rx="22" fill="url(#bgGrad)" />
+          <path d="M 15 70 C 10 95 60 90 70 60 C 78 40 85 20 85 20" fill="none" stroke="url(#arrowGrad)" stroke-width="12" stroke-linecap="round" />
+          <path d="M 88 15 L 65 25 L 80 40 Z" fill="#ffffff" />
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">FinFlow</div>
+        <div class="logo-sub">ENTERPRISE FINANCE</div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+
+      <div class="nav-item active" data-section="dashboard">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Dashboard</span>
+      </div>
+
+      <div class="nav-item" data-section="transactions">
+        <span class="nav-icon">💳</span>
+        <span class="nav-label">Transactions</span>
+      </div>
+
+      <div class="nav-item" data-section="insights">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Insights</span>
+      </div>
+
+      <div class="nav-section-label" style="margin-top:8px">Quick Info</div>
+
+      <div class="nav-item" style="cursor:default;opacity:0.7">
+        <span class="nav-icon">🛡</span>
+        <span class="nav-label">Balance Guard</span>
+        <span class="nav-badge">ON</span>
+      </div>
+
+      <div class="nav-item" style="cursor:default;opacity:0.7">
+        <span class="nav-icon">💾</span>
+        <span class="nav-label">Auto-Save</span>
+        <span class="nav-badge">LS</span>
+      </div>
+
+      <div class="nav-section-label" style="margin-top:8px">AI Assistant</div>
+
+      <div class="nav-item" id="nav-finbot" onclick="toggleChat()">
+        <span class="nav-icon">🤖</span>
+        <span class="nav-label">FinBot AI</span>
+        <span class="badge-new">RAG</span>
+      </div>
+    </nav>
+
+    <!-- Role Badge -->
+    <div class="sidebar-footer">
+      <div class="role-badge-sidebar">
+        <div class="role-dot" id="role-dot"></div>
+        <div>
+          <div class="role-name" id="role-badge-name">Administrator</div>
+          <div class="role-desc" id="role-badge-desc">Full access</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ─── MAIN WRAP ─────────────────────────────────────── -->
+  <div class="main-wrap">
+
+    <!-- ─── HEADER ─────────────────────────────────────── -->
+    <header class="header">
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open menu">☰</button>
+
+      <div class="header-title">
+        <h1>Dashboard</h1>
+        <span>Your financial overview at a glance</span>
+      </div>
+
+      <div class="header-controls">
+        <!-- Role Switcher -->
+        <div class="role-select-wrap">
+          <label for="role-select">Role:</label>
+          <select id="role-select" class="role-select">
+            <option value="admin">👑 Admin</option>
+            <option value="viewer">👁 Viewer</option>
+          </select>
+        </div>
+
+        <!-- Dark/Light Toggle -->
+        <button class="btn-icon" id="theme-btn" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- ─── CONTENT ───────────────────────────────────── -->
+    <main class="content">
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!--  SECTION: DASHBOARD                           -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="section active" id="section-dashboard">
+
+        <div class="section-header">
+          <div>
+            <h2>Overview</h2>
+            <p>All-time financial summary across all transactions</p>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+
+          <div class="summary-card card-balance">
+            <div class="card-top">
+              <div class="card-label">Net Balance</div>
+              <div class="card-icon">💰</div>
+            </div>
+            <div class="card-value" id="val-balance">₹0</div>
+            <div class="card-sub" id="sub-balance">Savings: ₹0</div>
+            <div class="card-trend trend-up" id="trend-balance">▲ Positive balance</div>
+          </div>
+
+          <div class="summary-card card-income">
+            <div class="card-top">
+              <div class="card-label">Total Income</div>
+              <div class="card-icon">📈</div>
+            </div>
+            <div class="card-value" id="val-income">₹0</div>
+            <div class="card-sub" id="sub-income">0 income transactions</div>
+            <div class="card-trend trend-up">▲ Earnings tracked</div>
+          </div>
+
+          <div class="summary-card card-expense">
+            <div class="card-top">
+              <div class="card-label">Total Expenses</div>
+              <div class="card-icon">📉</div>
+            </div>
+            <div class="card-value" id="val-expenses">₹0</div>
+            <div class="card-sub" id="sub-expenses">0 expense transactions</div>
+            <div class="card-trend trend-down" id="trend-expense">▼ Outflows tracked</div>
+          </div>
+
+        </div>
+
+        <!-- Spending Health Gauge -->
+        <div class="gauge-section">
+          <div class="gauge-wrap">
+            <svg class="gauge-svg" id="gauge-svg" viewBox="0 0 160 100"></svg>
+          </div>
+          <div class="gauge-info">
+            <div class="gauge-title">⚡ Spending Health Gauge</div>
+            <div class="gauge-pct" id="gauge-pct">0%</div>
+            <div class="gauge-status" id="gauge-status">🟢 Healthy</div>
+            <div class="gauge-thresholds">
+              <div class="threshold-item"><div class="threshold-dot" style="background:var(--gauge-green)"></div>Safe &lt; 50%</div>
+              <div class="threshold-item"><div class="threshold-dot" style="background:var(--gauge-yellow)"></div>Caution 50–75%</div>
+              <div class="threshold-item"><div class="threshold-dot" style="background:var(--gauge-red)"></div>High Risk &gt; 75%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spending DNA Fingerprint Widget -->
+        <div class="dna-section">
+          <div class="dna-header">
+            <div>
+              <h3>🧬 Spending DNA Fingerprint</h3>
+              <p>Generative mathematical visual vector based on spending habits</p>
+            </div>
+            <div class="dna-badge" id="dna-hash">DNA: #000000</div>
+          </div>
+          <div class="dna-body">
+            <div class="dna-svg-wrap">
+              <svg id="dna-svg" viewBox="0 0 200 200"></svg>
+            </div>
+            <div class="dna-stats">
+              <div class="dna-stat-item">
+                <span class="dna-label">Primary DNA Trait:</span>
+                <strong id="dna-trait" class="dna-val">—</strong>
+              </div>
+              <div class="dna-stat-item">
+                <span class="dna-label">Fingerprint Stability:</span>
+                <strong id="dna-stability" class="dna-val">100%</strong>
+              </div>
+              <div class="dna-stat-item">
+                <span class="dna-label">Category Variance:</span>
+                <strong id="dna-variance" class="dna-val">0.0</strong>
+              </div>
+              <p class="dna-note">✨ Unique generative SVG fingerprint computed client-side from polar category vectors.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-grid">
+
+          <!-- Balance Trend -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3>📈 Balance Trend</h3>
+              <span>Last 6 months</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="chart-trend"></canvas>
+            </div>
+          </div>
+
+          <!-- Spending Donut -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3>🍩 Spending by Category</h3>
+              <span>All time</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="chart-donut"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Row: Recent Transactions + Category Mini Bars -->
+        <div class="bottom-grid">
+
+          <div class="alerts-widget">
+            <div class="chart-card-header" style="margin-bottom:10px">
+              <h3>🕒 Recent Transactions</h3>
+              <span>Latest 5</span>
+            </div>
+            <div id="recent-tx-list"></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header" style="margin-bottom:10px">
+              <h3>📊 Top Spending Categories</h3>
+              <span>Expense breakdown</span>
+            </div>
+            <div id="cat-bars-dashboard"></div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!--  SECTION: TRANSACTIONS                        -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="section" id="section-transactions">
+
+        <div class="section-header">
+          <div>
+            <h2>Transactions</h2>
+            <p>Your complete financial record</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <!-- Export dropdown (Admin only) -->
+            <div class="export-menu-wrap admin-only">
+              <button class="btn btn-outline" id="btn-export">📤 Export ▾</button>
+              <div class="export-menu" id="export-menu">
+                <div class="export-option" id="export-csv">📄 Export CSV</div>
+                <div class="export-option" id="export-json">📦 Export JSON</div>
+              </div>
+            </div>
+            <!-- Add button (Admin only) -->
+            <button class="btn btn-primary admin-only" id="btn-add-tx">+ Add Transaction</button>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="tx-controls">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="tx-search" placeholder="Search by description or category…" />
+          </div>
+          <select id="filter-type" class="filter-select">
+            <option value="all">All Types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <select id="filter-cat" class="filter-select">
+            <option value="all">All Categories</option>
+          </select>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="table-wrap">
+          <div class="table-inner">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="date">Date <span class="sort-arrow">↕</span></th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th data-sort="amount">Amount <span class="sort-arrow">↕</span></th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tx-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span id="tx-count">0 transactions</span>
+            <span style="font-size:0.73rem;color:var(--text-muted)">💾 Auto-saved to LocalStorage</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!--  SECTION: INSIGHTS                            -->
+      <!-- ══════════════════════════════════════════════ -->
+      <section class="section" id="section-insights">
+
+        <div class="section-header">
+          <div>
+            <h2>Insights</h2>
+            <p>Understanding your spending patterns</p>
+          </div>
+        </div>
+
+        <!-- Insight Cards -->
+        <div class="insights-grid">
+
+          <div class="insight-card">
+            <div class="insight-card-icon">🏆</div>
+            <h4>Highest Spending Category</h4>
+            <div class="insight-value" id="ins-top-cat" style="color:var(--accent-orange)">—</div>
+            <div class="insight-sub" id="ins-top-amt">—</div>
+            <div class="insight-accent-bar" style="background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div>
+          </div>
+
+          <div class="insight-card">
+            <div class="insight-card-icon">💸</div>
+            <h4>Savings Rate</h4>
+            <div class="insight-value" id="ins-savings-rate" style="color:var(--accent-green)">0%</div>
+            <div class="insight-sub" id="ins-savings-sub">Calculating…</div>
+            <div class="insight-accent-bar" style="background:linear-gradient(90deg,var(--accent-green),var(--accent-cyan))"></div>
+          </div>
+
+          <div class="insight-card">
+            <div class="insight-card-icon">📅</div>
+            <h4>Monthly Comparison</h4>
+            <div class="monthly-compare">
+              <div class="month-col">
+                <h4>Mar Income</h4><div class="val" id="ins-cur-inc">₹0</div>
+                <h4 style="margin-top:8px">Mar Expenses</h4><div class="val" id="ins-cur-exp">₹0</div>
+              </div>
+              <div class="month-col">
+                <h4>Feb Income</h4><div class="val" id="ins-prev-inc">₹0</div>
+                <h4 style="margin-top:8px">Feb Expenses</h4><div class="val" id="ins-prev-exp">₹0</div>
+              </div>
+            </div>
+          <div class="insight-card">
+            <div class="insight-card-icon">🧠</div>
+            <h4>Regret Index (NLP Sentiment)</h4>
+            <div class="insight-value" id="ins-regret-score" style="color:var(--accent-purple)">0%</div>
+            <div class="insight-sub" id="ins-regret-sub">Emotional spend signals</div>
+            <div class="insight-accent-bar" style="background:linear-gradient(90deg,var(--accent-purple),var(--accent-pink))"></div>
+          </div>
+
+          <div class="insight-card">
+            <div class="insight-card-icon">🛡️</div>
+            <h4>Local Peer Benchmarking</h4>
+            <div class="insight-value" id="ins-benchmark-val" style="color:var(--accent-cyan)">Top 35%</div>
+            <div class="insight-sub" id="ins-benchmark-sub">Zero-server client calculations</div>
+            <div class="insight-accent-bar" style="background:linear-gradient(90deg,var(--accent-cyan),var(--accent-green))"></div>
+          </div>
+
+        </div>
+
+        <!-- Monthly Bar Chart + Alerts Row -->
+        <div class="charts-grid">
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3>📊 Monthly Income vs Expenses</h3>
+              <span>Last 4 months</span>
+            </div>
+            <div class="chart-wrap monthly-chart-wrap">
+              <canvas id="chart-monthly"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3>📋 Category Breakdown</h3>
+              <span>All expenses</span>
+            </div>
+            <div id="cat-bars"></div>
+          </div>
+
+        </div>
+
+        <!-- Alerts Widget -->
+        <div class="alerts-widget" style="margin-top:20px">
+          <div class="chart-card-header" style="margin-bottom:12px">
+            <h3>🔔 Spending Alerts</h3>
+            <span>Tracking large & notable items</span>
+          </div>
+          <div id="alerts-list"></div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  MODAL: ADD TRANSACTION                                   -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h3 id="modal-title">➕ Add Transaction</h3>
+      <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+    </div>
+
+    <div class="error-msg" id="form-error"></div>
+
+    <form id="add-form" novalidate>
+
+      <div class="form-group">
+        <label for="add-desc">Description *</label>
+        <input type="text" id="add-desc" placeholder="e.g. Monthly Salary, Grocery run…" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="add-amount">Amount (₹) *</label>
+          <input type="number" id="add-amount" placeholder="0.00" min="1" step="0.01" required />
+        </div>
+        <div class="form-group">
+          <label for="add-date">Date *</label>
+          <input type="date" id="add-date" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="add-type">Type *</label>
+          <select id="add-type" required>
+            <option value="">Select type</option>
+            <option value="income">📈 Income</option>
+            <option value="expense">📉 Expense</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="add-cat">Category *</label>
+          <select id="add-cat" required>
+            <option value="">Select category</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <button type="button" class="btn btn-outline" id="modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-success">✅ Save Transaction</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  CHATBOT: FLOATING BUBBLE + PANEL                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+
+<!-- Floating bubble -->
+<button class="chat-bubble" id="chat-bubble" onclick="toggleChat()" aria-label="Open FinBot AI">
+  🤖
+  <span class="chat-unread" id="chat-unread" style="display:none">1</span>
+</button>
+
+<!-- Chat panel -->
+<div class="chat-panel" id="chat-panel" role="complementary" aria-label="FinBot AI Assistant">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">FinBot AI</div>
+      <div class="chat-header-status">
+        <div class="status-dot"></div>
+        <span id="chat-mode-label">Local RAG Mode</span>
+      </div>
+    </div>
+    <div class="chat-header-actions">
+      <button class="chat-head-btn" id="chat-settings-btn" title="API Settings">⚙️</button>
+      <button class="chat-head-btn" id="chat-clear-btn" title="Clear chat">🗑</button>
+      <button class="chat-head-btn" onclick="toggleChat()" title="Close">✕</button>
+    </div>
+  </div>
+
+  <!-- Settings panel (hidden by default) -->
+  <div class="chat-settings" id="chat-settings">
+    <label>Gemini API Key <span style="color:var(--text-muted);font-weight:400">(optional — for AI-powered answers)</span></label>
+    <input type="password" id="gemini-key-input" placeholder="AIza…" />
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="ai-mode-badge ai-mode-local" id="ai-badge">⚡ Local RAG</span>
+      <button class="btn btn-primary" style="padding:6px 14px;font-size:0.78rem" onclick="saveApiKey()">Save Key</button>
+    </div>
+    <p style="font-size:0.7rem;color:var(--text-muted);margin-top:8px">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-blue)">aistudio.google.com</a></p>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chat-messages"></div>
+
+  <!-- Quick prompts -->
+  <div class="chat-quick-prompts" id="chat-quick-prompts">
+    <button class="quick-prompt" onclick="sendQuick('What is my balance?')">💰 Balance</button>
+    <button class="quick-prompt" onclick="sendQuick('Show budget plan')">📊 Budget</button>
+    <button class="quick-prompt" onclick="sendQuick('Top spending categories')">🏆 Top Spend</button>
+    <button class="quick-prompt" onclick="sendQuick('Monthly insights')">📅 Monthly</button>
+    <button class="quick-prompt" onclick="sendQuick('Financial insights')">🔍 Insights</button>
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-area">
+    <input class="chat-input" id="chat-input" type="text"
+      placeholder="Ask FinBot… e.g. &quot;Add expense ₹500 food&quot;"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}" />
+    <button class="chat-send" id="chat-send-btn" onclick="sendChat()" aria-label="Send">➤</button>
+  </div>
+
+</div>
+
+<script src="api/config.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="app.js"></script>
+<script>
+/* ── CHATBOT UI CONTROLLER ── */
+let chatOpen = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  document.getElementById('chat-bubble').classList.toggle('open', chatOpen);
+  document.getElementById('chat-unread').style.display = 'none';
+  if (chatOpen && document.getElementById('chat-messages').children.length === 0) {
+    appendBotMsg('Welcome to **FinBot**, your enterprise financial assistant.\n\nI am equipped to provide deep insights into your financial data. How may I assist you today?\n\nTry: **"Show budget plan"** or **"What is my balance?"**');
+  }
+  if (chatOpen) setTimeout(() => document.getElementById('chat-input').focus(), 300);
+}
+
+function markdownToHtml(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function appendBotMsg(text, isTyping) {
+  const msgs = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.className = 'chat-msg bot';
+  if (isTyping) {
+    el.id = 'chat-typing';
+    el.innerHTML = '<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+  } else {
+    el.innerHTML = '<div class="msg-avatar">🤖</div><div class="msg-bubble">' + markdownToHtml(text) + '</div>';
+  }
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
+}
+
+function appendUserMsg(text) {
+  const msgs = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.className = 'chat-msg user';
+  el.innerHTML = '<div class="msg-avatar">👤</div><div class="msg-bubble">' + text.replace(/</g,'&lt;') + '</div>';
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  appendUserMsg(text);
+  document.getElementById('chat-send-btn').disabled = true;
+
+  const typingEl = appendBotMsg('', true);
+
+  try {
+    const txs = State.get('transactions');
+    const { text: reply, action } = await FinBot.processMessage(text, txs, (act) => {
+      if (act.action === 'add_transaction' && act.tx) {
+        State.addTx(act.tx);
+        renderAll();
+        toast('FinBot added a transaction! 🤖', 'success');
+      }
+    });
+    typingEl.remove();
+    appendBotMsg(reply);
+  } catch (err) {
+    typingEl.remove();
+    appendBotMsg('❌ Something went wrong: ' + err.message);
+  }
+
+  document.getElementById('chat-send-btn').disabled = false;
+  document.getElementById('chat-input').focus();
+}
+
+function sendQuick(msg) {
+  document.getElementById('chat-input').value = msg;
+  sendChat();
+}
+
+// API key settings
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('chat-settings-btn').addEventListener('click', () => {
+    document.getElementById('chat-settings').classList.toggle('visible');
+  });
+
+  document.getElementById('chat-clear-btn').addEventListener('click', () => {
+    document.getElementById('chat-messages').innerHTML = '';
+    appendBotMsg('Chat cleared! Ask me anything 💬');
+  });
+
+  // Load saved API key
+  const savedKey = localStorage.getItem('finflow_gemini_key') || '';
+  if (savedKey) {
+    document.getElementById('gemini-key-input').value = savedKey;
+    window.FINFLOW_CONFIG.GEMINI_API_KEY = savedKey;
+    updateAiBadge(savedKey);
+  }
+
+  // Show unread badge if chat is closed
+  setTimeout(() => {
+    if (!chatOpen) document.getElementById('chat-unread').style.display = 'flex';
+  }, 2000);
+});
+
+function saveApiKey() {
+  const key = document.getElementById('gemini-key-input').value.trim();
+  localStorage.setItem('finflow_gemini_key', key);
+  window.FINFLOW_CONFIG.GEMINI_API_KEY = key;
+  updateAiBadge(key);
+  toast(key ? '✅ Gemini API key saved! AI mode activated.' : '⚡ Switched to local RAG mode.', 'success');
+  document.getElementById('chat-settings').classList.remove('visible');
+}
+
+function updateAiBadge(key) {
+  const badge = document.getElementById('ai-badge');
+  const label = document.getElementById('chat-mode-label');
+  if (key && key.length > 5) {
+    badge.textContent = '🤖 Gemini AI';
+    badge.className = 'ai-mode-badge ai-mode-gemini';
+    label.textContent = 'Gemini AI Mode';
+  } else {
+    badge.textContent = '⚡ Local RAG';
+    badge.className = 'ai-mode-badge ai-mode-local';
+    label.textContent = 'Local RAG Mode';
+  }
+}
+</script>
+</body>
+</html>
